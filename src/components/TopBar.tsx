@@ -25,22 +25,7 @@ export default function TopBar({ connected, onRefresh, theme, onThemeChange }: P
   return (
     <header className="flex items-center justify-between h-12 px-4 border-b bg-card shrink-0">
       <div className="flex items-center gap-2.5">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="text-primary"
-        >
-          <path
-            d="M12 2L3 7v10l9 5 9-5V7l-9-5z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            fill="currentColor"
-            fillOpacity="0.15"
-          />
-          <circle cx="12" cy="12" r="3" fill="currentColor" />
-        </svg>
+        <img src="/logo.svg" alt="Neo4g" width={20} height={20} className="shrink-0" />
         <span className="font-semibold text-sm tracking-wide">
           Neo4g Studio
         </span>
