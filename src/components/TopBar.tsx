@@ -1,36 +1,82 @@
-import { RefreshCw, Hexagon } from "lucide-react";
+import { RefreshCw, Sun, Moon, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { type Theme } from "@/hooks/use-theme";
+
+const themeIcon = { light: Sun, dark: Moon, system: Monitor } as const;
+const themeLabel = { light: "Light", dark: "Dark", system: "System" } as const;
+const themeCycle: Record<Theme, Theme> = { light: "dark", dark: "system", system: "light" };
 
 type Props = {
   connected: boolean;
   onRefresh: () => void;
+  theme: Theme;
+  onThemeChange: (t: Theme) => void;
 };
 
-export default function TopBar({ connected, onRefresh }: Props) {
+export default function TopBar({ connected, onRefresh, theme, onThemeChange }: Props) {
+  const Icon = themeIcon[theme];
+
   return (
-    <header className="flex items-center justify-between h-12 px-4 border-b border-border bg-card shrink-0">
+    <header className="flex items-center justify-between h-12 px-4 border-b bg-card shrink-0">
       <div className="flex items-center gap-2.5">
-        <Hexagon className="h-5 w-5 text-primary fill-primary/15" />
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          className="text-primary"
+        >
+          <path
+            d="M12 2L3 7v10l9 5 9-5V7l-9-5z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="currentColor"
+            fillOpacity="0.15"
+          />
+          <circle cx="12" cy="12" r="3" fill="currentColor" />
+        </svg>
         <span className="font-semibold text-sm tracking-wide">
           Neo4g Studio
         </span>
       </div>
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onRefresh} className="gap-1.5 text-muted-foreground">
-          <RefreshCw className="h-3.5 w-3.5" />
-          Refresh
-        </Button>
-        <Separator orientation="vertical" className="h-5" />
-        <div className="flex items-center gap-1.5">
-          <div
-            className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-primary" : "bg-destructive"}`}
+      <div className="flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onThemeChange(themeCycle[theme])}
+              />
+            }
+          >
+            <Icon className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipContent>{themeLabel[theme]}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={<Button variant="ghost" size="icon-sm" onClick={onRefresh} />}
+          >
+            <RefreshCw className="size-3.5" />
+          </TooltipTrigger>
+          <TooltipContent>Refresh schema</TooltipContent>
+        </Tooltip>
+        <Badge
+          variant={connected ? "default" : "destructive"}
+          className="gap-1.5 font-normal"
+        >
+          <span
+            className={`size-1.5 rounded-full ${connected ? "bg-primary-foreground" : "bg-destructive-foreground"}`}
           />
-          <Badge variant="outline" className="text-[11px] font-normal py-0 px-1.5 border-border">
-            {connected ? "Connected" : "Disconnected"}
-          </Badge>
-        </div>
+          {connected ? "Connected" : "Disconnected"}
+        </Badge>
       </div>
     </header>
   );

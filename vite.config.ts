@@ -14,7 +14,7 @@ export default defineConfig({
     port: 4983,
     proxy: {
       "/api": {
-        target: "http://localhost:7480",
+        target: process.env.NEO4G_URL || "http://localhost:7480",
         changeOrigin: true,
       },
     },

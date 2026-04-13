@@ -1,5 +1,10 @@
 import { useState, useCallback } from "react";
-import { runQuery, type QueryResult } from "../api";
+import { Play, Loader2 } from "lucide-react";
+import { runQuery, type QueryResult } from "@/api";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import DataTable from "./DataTable";
 
 export default function QueryConsole() {
@@ -36,48 +41,53 @@ export default function QueryConsole() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="shrink-0 border-b border-neutral-800">
-        <div className="flex items-center gap-3 px-4 py-2.5">
+      <div className="shrink-0 p-4 space-y-3">
+        <div className="flex items-center gap-3">
           <h2 className="text-sm font-semibold">Query Console</h2>
           {elapsed !== null && (
-            <span className="text-[10px] text-neutral-500 tabular-nums">
+            <Badge variant="secondary" className="text-[10px] tabular-nums font-mono">
               {elapsed.toFixed(0)}ms
-            </span>
+            </Badge>
           )}
         </div>
-        <div className="px-4 pb-3">
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            spellCheck={false}
-            className="w-full h-28 bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2.5 text-xs font-mono text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-emerald-500/50 resize-y leading-relaxed"
-            placeholder="Enter Cypher-lite query..."
-          />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-[10px] text-neutral-600">
-              ⌘+Enter to run
-            </span>
-            <button
-              onClick={execute}
-              disabled={loading || !query.trim()}
-              className="px-4 py-1.5 text-xs font-medium bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-md transition-colors cursor-pointer"
-            >
-              {loading ? "Running..." : "Run Query"}
-            </button>
-          </div>
+        <Textarea
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          spellCheck={false}
+          className="h-28 font-mono text-xs bg-background resize-y leading-relaxed"
+          placeholder="Enter Cypher-lite query..."
+        />
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground">
+            ⌘+Enter to run
+          </span>
+          <Button
+            onClick={execute}
+            disabled={loading || !query.trim()}
+            size="sm"
+          >
+            {loading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Play className="size-3.5" />
+            )}
+            {loading ? "Running..." : "Run Query"}
+          </Button>
         </div>
       </div>
 
+      <Separator />
+
       <div className="flex-1 overflow-auto">
         {error && (
-          <div className="m-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400 font-mono whitespace-pre-wrap">
+          <div className="m-4 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-xs text-destructive font-mono whitespace-pre-wrap">
             {error}
           </div>
         )}
         {result && <DataTable title="Results" data={result} kind="raw" />}
         {!result && !error && (
-          <div className="flex items-center justify-center h-full text-neutral-600 text-xs">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
             Run a query to see results
           </div>
         )}

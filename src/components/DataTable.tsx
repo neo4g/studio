@@ -1,4 +1,22 @@
-import { isNode, isEdge, type QueryResult } from "../api";
+import { useState } from "react";
+import { isNode, isEdge, type QueryResult } from "@/api";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import NodeSheet from "./NodeSheet";
+
+const NODE_REF_COLUMNS = new Set(["source", "target"]);
+const NODE_REF_SUFFIXES = [".source", ".target"];
+
+function isNodeRefColumn(col: string): boolean {
+  return NODE_REF_COLUMNS.has(col) || NODE_REF_SUFFIXES.some((s) => col.endsWith(s));
+}
 
 type Props = {
   title: string;
@@ -8,79 +26,91 @@ type Props = {
 
 export default function DataTable({ title, data, kind }: Props) {
   const { columns, rows } = flattenData(data, kind);
+  const [inspectNodeId, setInspectNodeId] = useState<number | null>(null);
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-800 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b shrink-0">
         <h2 className="text-sm font-semibold">{title}</h2>
-        <span className="text-xs text-neutral-500">
+        <Badge variant="secondary" className="text-[10px]">
           {rows.length} row{rows.length !== 1 ? "s" : ""}
-        </span>
+        </Badge>
       </div>
       <div className="flex-1 overflow-auto">
         {rows.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             No data
           </div>
         ) : (
-          <table className="w-full text-xs border-collapse">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-neutral-900 border-b border-neutral-700">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-card">
+              <TableRow>
                 {columns.map((col) => (
-                  <th
+                  <TableHead
                     key={col}
-                    className="text-left px-3 py-2.5 font-medium text-neutral-400 whitespace-nowrap border-r border-neutral-800 last:border-r-0"
+                    className="whitespace-nowrap text-xs font-medium"
                   >
                     {col}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-800/50">
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rows.map((row, i) => (
-                <tr
-                  key={i}
-                  className="hover:bg-neutral-800/30 transition-colors"
-                >
+                <TableRow key={i}>
                   {columns.map((col) => (
-                    <td
+                    <TableCell
                       key={col}
-                      className="px-3 py-2 font-mono text-[11px] text-neutral-300 whitespace-nowrap max-w-xs truncate border-r border-neutral-800/30 last:border-r-0"
+                      className="font-mono text-[11px] whitespace-nowrap max-w-xs truncate"
                       title={formatCell(row[col])}
                     >
-                      <CellValue value={row[col]} />
-                    </td>
+                      {isNodeRefColumn(col) && typeof row[col] === "number" ? (
+                        <button
+                          onClick={() => setInspectNodeId(row[col] as number)}
+                          className="text-primary underline underline-offset-2 decoration-primary/40 hover:decoration-primary cursor-pointer transition-colors"
+                        >
+                          {row[col] as number}
+                        </button>
+                      ) : (
+                        <CellValue value={row[col]} />
+                      )}
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
+
+      <NodeSheet
+        nodeId={inspectNodeId}
+        onClose={() => setInspectNodeId(null)}
+      />
     </div>
   );
 }
 
 function CellValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
-    return <span className="text-neutral-600 italic">null</span>;
+    return <span className="text-muted-foreground/50 italic">null</span>;
   }
   if (typeof value === "boolean") {
     return (
-      <span className={value ? "text-emerald-400" : "text-red-400"}>
+      <Badge variant={value ? "default" : "destructive"} className="text-[10px] h-5">
         {String(value)}
-      </span>
+      </Badge>
     );
   }
   if (typeof value === "number") {
-    return <span className="text-amber-300">{value}</span>;
+    return <span className="text-amber-400">{value}</span>;
   }
   if (typeof value === "string") {
-    return <span className="text-emerald-300">{value}</span>;
+    return <span className="text-primary">{value}</span>;
   }
   if (typeof value === "object") {
     return (
-      <span className="text-neutral-500">{JSON.stringify(value)}</span>
+      <span className="text-muted-foreground">{JSON.stringify(value)}</span>
     );
   }
   return <span>{String(value)}</span>;
